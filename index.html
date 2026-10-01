@@ -1,189 +1,35 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Grade 6 Math: Integer Number Line Test</title>
-  <style>
-    :root {
-      --primary: #2563eb;
-      --success: #16a34a;
-      --danger: #dc2626;
-      --bg: #f8fafc;
-      --card: #ffffff;
-    }
-
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: var(--bg);
-      color: #1e293b;
-      margin: 0;
-      padding: 20px;
-      display: flex;
-      justify-content: center;
-    }
-
-    .container {
-      max-width: 800px;
-      width: 100%;
-      background: var(--card);
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-    }
-
-    h1 {
-      text-align: center;
-      color: var(--primary);
-      margin-bottom: 8px;
-    }
-
-    .subtitle {
-      text-align: center;
-      color: #64748b;
-      margin-bottom: 24px;
-    }
-
-    .progress-bar {
-      height: 8px;
-      background: #e2e8f0;
-      border-radius: 4px;
-      overflow: hidden;
-      margin-bottom: 20px;
-    }
-
-    .progress-fill {
-      height: 100%;
-      background: var(--primary);
-      width: 0%;
-      transition: width 0.3s ease;
-    }
-
-    .card {
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      padding: 20px;
-      margin-bottom: 20px;
-    }
-
-    .problem {
-      font-size: 1.8rem;
-      font-weight: bold;
-      text-align: center;
-      margin-bottom: 15px;
-    }
-
-    .canvas-container {
-      width: 100%;
-      overflow-x: auto;
-      text-align: center;
-    }
-
-    canvas {
-      background: #fff;
-      border: 1px solid #cbd5e1;
-      border-radius: 6px;
-    }
-
-    .controls {
-      display: flex;
-      gap: 10px;
-      justify-content: center;
-      align-items: center;
-      margin-top: 20px;
-    }
-
-    input[type="number"] {
-      width: 100px;
-      padding: 10px;
-      font-size: 1.2rem;
-      border: 2px solid #cbd5e1;
-      border-radius: 6px;
-      text-align: center;
-    }
-
-    button {
-      padding: 10px 20px;
-      font-size: 1rem;
-      font-weight: 600;
-      color: #fff;
-      background-color: var(--primary);
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    button:hover {
-      background-color: #1d4ed8;
-    }
-
-    .feedback {
-      margin-top: 15px;
-      text-align: center;
-      font-weight: bold;
-      font-size: 1.1rem;
-      min-height: 24px;
-    }
-
-    .correct { color: var(--success); }
-    .incorrect { color: var(--danger); }
-
-    .score-screen {
-      text-align: center;
-      display: none;
-    }
-
-    .score-screen h2 {
-      font-size: 2rem;
-      color: var(--primary);
-    }
-  </style>
-</head>
-<body>
-
-<div class="container">
-  <h1>Integers on a Number Line</h1>
-  <p class="subtitle">Grade 6 Mathematics Interactive Checkup</p>
-  
-  <div class="progress-bar">
-    <div class="progress-fill" id="progress"></div>
-  </div>
-
-  <div id="quiz-area">
-    <div class="card">
-      <div class="problem" id="problem-text">Solve: 3 + (-5)</div>
-      
-      <div class="canvas-container">
-        <canvas id="numberLine" width="700" height="150"></canvas>
-      </div>
-
-      <div class="controls">
-        <label for="user-answer">Final Position = </label>
-        <input type="number" id="user-answer" placeholder="?" autocomplete="off">
-        <button onclick="checkAnswer()">Submit Answer</button>
-      </div>
-      <div class="feedback" id="feedback"></div>
-    </div>
-  </div>
-
-  <div id="score-area" class="score-screen">
-    <h2>Test Completed!</h2>
-    <p id="final-score" style="font-size: 1.5rem;"></p>
-    <button onclick="restartTest()">Try Again</button>
-  </div>
-</div>
 
 <script>
   const questions = [
-    { start: 2, change: 4, type: 'add', text: "2 + 4" },
-    { start: 3, change: -5, type: 'add', text: "3 + (-5)" },
-    { start: -2, change: 6, type: 'add', text: "-2 + 6" },
-    { start: -1, change: -4, type: 'add', text: "-1 + (-4)" },
-    { start: 5, change: 8, type: 'sub', text: "5 - 8" },
+    // Positive + Positive / Positive + Negative
+    { start: 3, change: 5, type: 'add', text: "3 + 5" },
+    { start: 2, change: -6, type: 'add', text: "2 + (-6)" },
+    { start: 6, change: -4, type: 'add', text: "6 + (-4)" },
+    { start: 1, change: -8, type: 'add', text: "1 + (-8)" },
+
+    // Negative + Positive / Negative + Negative
+    { start: -4, change: 7, type: 'add', text: "-4 + 7" },
+    { start: -2, change: 2, type: 'add', text: "-2 + 2" },
+    { start: -5, change: -3, type: 'add', text: "-5 + (-3)" },
+    { start: -1, change: -6, type: 'add', text: "-1 + (-6)" },
+
+    // Subtracting Positive Integers
+    { start: 4, change: 7, type: 'sub', text: "4 - 7" },
+    { start: 8, change: 3, type: 'sub', text: "8 - 3" },
+    { start: -2, change: 5, type: 'sub', text: "-2 - 5" },
     { start: -3, change: 4, type: 'sub', text: "-3 - 4" },
-    { start: 4, change: -3, type: 'sub', text: "4 - (-3)" },
-    { start: -2, change: -5, type: 'sub', text: "-2 - (-5)" }
+
+    // Subtracting Negative Integers (Double Negatives)
+    { start: 2, change: -5, type: 'sub', text: "2 - (-5)" },
+    { start: 5, change: -2, type: 'sub', text: "5 - (-2)" },
+    { start: -6, change: -4, type: 'sub', text: "-6 - (-4)" },
+    { start: -4, change: -4, type: 'sub', text: "-4 - (-4)" },
+
+    // Zero Combinations & Edge Cases
+    { start: 0, change: -7, type: 'add', text: "0 + (-7)" },
+    { start: 0, change: -6, type: 'sub', text: "0 - (-6)" },
+    { start: -5, change: -5, type: 'sub', text: "-5 - (-5)" },
+    { start: -3, change: 8, type: 'sub', text: "-3 - (-8)" }
   ];
 
   let currentQ = 0;
@@ -198,7 +44,7 @@
     document.getElementById('user-answer').focus();
     
     const q = questions[currentQ];
-    document.getElementById('problem-text').textContent = `Question ${currentQ + 1} of ${questions.length}: Solve${q.text}`;
+    document.getElementById('problem-text').textContent = `Question ${currentQ + 1} of ${questions.length}: Solve ${q.text}`;
     document.getElementById('progress').style.width = `${((currentQ) / questions.length) * 100}%`;
     
     drawNumberLine(q.start, getEndValue(q));
@@ -333,16 +179,11 @@
     initQuestion();
   }
 
-  // Handle Enter Key press
   document.getElementById('user-answer').addEventListener('keyup', function(event) {
     if (event.key === 'Enter') {
       checkAnswer();
     }
   });
 
-  // Start initial question
   initQuestion();
 </script>
-
-</body>
-</html>
