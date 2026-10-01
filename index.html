@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grade 6 Math: Integer Number Line Test</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --success: #16a34a;
+      --danger: #dc2626;
+      --bg: #f8fafc;
+      --card: #ffffff;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg);
+      color: #1e293b;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      max-width: 800px;
+      width: 100%;
+      background: var(--card);
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      text-align: center;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #64748b;
+      margin-bottom: 24px;
+    }
+
+    .progress-bar {
+      height: 8px;
+      background: #e2e8f0;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--primary);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    .card {
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .problem {
+      font-size: 1.8rem;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 15px;
+    }
+
+    .canvas-container {
+      width: 100%;
+      overflow-x: auto;
+      text-align: center;
+    }
+
+    canvas {
+      background: #fff;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      align-items: center;
+      margin-top: 20px;
+    }
+
+    input[type="number"] {
+      width: 100px;
+      padding: 10px;
+      font-size: 1.2rem;
+      border: 2px solid #cbd5e1;
+      border-radius: 6px;
+      text-align: center;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #fff;
+      background-color: var(--primary);
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background-color: #1d4ed8;
+    }
+
+    .feedback {
+      margin-top: 15px;
+      text-align: center;
+      font-weight: bold;
+      font-size: 1.1rem;
+      min-height: 24px;
+    }
+
+    .correct { color: var(--success); }
+    .incorrect { color: var(--danger); }
+
+    .score-screen {
+      text-align: center;
+      display: none;
+    }
+
+    .score-screen h2 {
+      font-size: 2rem;
+      color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Integers on a Number Line</h1>
+  <p class="subtitle">Grade 6 Mathematics Interactive Checkup</p>
+  
+  <div class="progress-bar">
+    <div class="progress-fill" id="progress"></div>
+  </div>
+
+  <div id="quiz-area">
+    <div class="card">
+      <div class="problem" id="problem-text">Solve: 3 + (-5)</div>
+      
+      <div class="canvas-container">
+        <canvas id="numberLine" width="700" height="150"></canvas>
+      </div>
+
+      <div class="controls">
+        <label for="user-answer">Final Position = </label>
+        <input type="number" id="user-answer" placeholder="?" autocomplete="off">
+        <button onclick="checkAnswer()">Submit Answer</button>
+      </div>
+      <div class="feedback" id="feedback"></div>
+    </div>
+  </div>
+
+  <div id="score-area" class="score-screen">
+    <h2>Test Completed!</h2>
+    <p id="final-score" style="font-size: 1.5rem;"></p>
+    <button onclick="restartTest()">Try Again</button>
+  </div>
+</div>
+
+<script>
+  const questions = [
+    { start: 2, change: 4, type: 'add', text: "2 + 4" },
+    { start: 3, change: -5, type: 'add', text: "3 + (-5)" },
+    { start: -2, change: 6, type: 'add', text: "-2 + 6" },
+    { start: -1, change: -4, type: 'add', text: "-1 + (-4)" },
+    { start: 5, change: 8, type: 'sub', text: "5 - 8" },
+    { start: -3, change: 4, type: 'sub', text: "-3 - 4" },
+    { start: 4, change: -3, type: 'sub', text: "4 - (-3)" },
+    { start: -2, change: -5, type: 'sub', text: "-2 - (-5)" }
+  ];
+
+  let currentQ = 0;
+  let score = 0;
+  const canvas = document.getElementById('numberLine');
+  const ctx = canvas.getContext('2d');
+
+  function initQuestion() {
+    document.getElementById('feedback').textContent = '';
+    document.getElementById('feedback').className = 'feedback';
+    document.getElementById('user-answer').value = '';
+    document.getElementById('user-answer').focus();
+    
+    const q = questions[currentQ];
+    document.getElementById('problem-text').textContent = `Question ${currentQ + 1} of ${questions.length}: Solve${q.text}`;
+    document.getElementById('progress').style.width = `${((currentQ) / questions.length) * 100}%`;
+    
+    drawNumberLine(q.start, getEndValue(q));
+  }
+
+  function getEndValue(q) {
+    if (q.type === 'add') return q.start + q.change;
+    if (q.type === 'sub') return q.start - q.change;
+  }
+
+  function drawNumberLine(startVal, endVal, showJumps = true) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    const min = -10;
+    const max = 10;
+    const margin = 40;
+    const width = canvas.width - 2 * margin;
+    const y = 100;
+
+    const getX = (val) => margin + ((val - min) / (max - min)) * width;
+
+    // Draw Main Axis Line
+    ctx.beginPath();
+    ctx.moveTo(margin - 10, y);
+    ctx.lineTo(canvas.width - margin + 10, y);
+    ctx.strokeStyle = '#334155';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Draw Arrows
+    drawArrowhead(ctx, margin - 10, y, Math.PI);
+    drawArrowhead(ctx, canvas.width - margin + 10, y, 0);
+
+    // Draw Ticks & Labels
+    for (let i = min; i <= max; i++) {
+      const x = getX(i);
+      ctx.beginPath();
+      ctx.moveTo(x, y - 8);
+      ctx.lineTo(x, y + 8);
+      ctx.strokeStyle = (i === 0) ? '#1e293b' : '#94a3b8';
+      ctx.lineWidth = (i === 0) ? 3 : 1.5;
+      ctx.stroke();
+
+      ctx.font = (i === 0) ? 'bold 14px sans-serif' : '12px sans-serif';
+      ctx.fillStyle = (i === 0) ? '#0f172a' : '#64748b';
+      ctx.textAlign = 'center';
+      ctx.fillText(i.toString(), x, y + 25);
+    }
+
+    if (showJumps) {
+      // Step 1: Start at Origin to First Point
+      drawArc(ctx, getX(0), getX(startVal), y, '#2563eb', 'Start: ' + startVal);
+      // Step 2: Jump to Final Result
+      drawArc(ctx, getX(startVal), getX(endVal), y, '#d97706', 'Move');
+    }
+  }
+
+  function drawArc(ctx, x1, x2, y, color, label) {
+    if (x1 === x2) return;
+    const radius = Math.abs(x2 - x1) / 2;
+    const centerX = (x1 + x2) / 2;
+    const isClockwise = x2 < x1;
+
+    ctx.beginPath();
+    ctx.arc(centerX, y, radius, Math.PI, 0, isClockwise);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2.5;
+    ctx.setLineDash([5, 5]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Draw Directional Arrow Head
+    const endAngle = isClockwise ? Math.PI : 0;
+    drawArrowhead(ctx, x2, y, isClockwise ? Math.PI / 2 : -Math.PI / 2, color);
+  }
+
+  function drawArrowhead(ctx, x, y, angle, color = '#334155') {
+    ctx.save();
+    ctx.beginPath();
+    ctx.translate(x, y);
+    ctx.rotate(angle);
+    ctx.moveTo(0, 0);
+    ctx.lineTo(-6, -4);
+    ctx.lineTo(-6, 4);
+    ctx.closePath();
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function checkAnswer() {
+    const input = document.getElementById('user-answer').value;
+    if (input === '') return;
+
+    const userAns = parseInt(input, 10);
+    const q = questions[currentQ];
+    const correctAns = getEndValue(q);
+    const feedback = document.getElementById('feedback');
+
+    if (userAns === correctAns) {
+      score++;
+      feedback.textContent = "Correct!";
+      feedback.className = "feedback correct";
+    } else {
+      feedback.textContent = `Incorrect. Correct answer is ${correctAns}.`;
+      feedback.className = "feedback incorrect";
+    }
+
+    setTimeout(() => {
+      currentQ++;
+      if (currentQ < questions.length) {
+        initQuestion();
+      } else {
+        showResults();
+      }
+    }, 1500);
+  }
+
+  function showResults() {
+    document.getElementById('quiz-area').style.display = 'none';
+    document.getElementById('score-area').style.display = 'block';
+    document.getElementById('progress').style.width = '100%';
+    document.getElementById('final-score').textContent = 
+      `You scored ${score} out of ${questions.length} (${Math.round((score / questions.length) * 100)}%)`;
+  }
+
+  function restartTest() {
+    currentQ = 0;
+    score = 0;
+    document.getElementById('quiz-area').style.display = 'block';
+    document.getElementById('score-area').style.display = 'none';
+    initQuestion();
+  }
+
+  // Handle Enter Key press
+  document.getElementById('user-answer').addEventListener('keyup', function(event) {
+    if (event.key === 'Enter') {
+      checkAnswer();
+    }
+  });
+
+  // Start initial question
+  initQuestion();
+</script>
+
+</body>
+</html>
